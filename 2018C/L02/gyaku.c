@@ -1,0 +1,90 @@
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
+
+#define STACK_MAX  100
+
+char *stack[STACK_MAX];
+int   stack_pointer = 0;
+
+void error(char *msg) {
+    fprintf(stderr, "error: %s\n", msg);
+    exit(1);
+}
+
+void push(char *pToken) {
+    if (stack_pointer >= STACK_MAX) error("stack full");
+    stack[stack_pointer++] = pToken;
+}
+
+char *pop() {
+    return stack_pointer > 0 ? stack[--stack_pointer] : NULL;
+}
+
+char *peek() {
+    return stack_pointer > 0 ? stack[stack_pointer-1] : NULL;
+}
+
+// 演算子の優先順位を返す
+int rank(char *op) {
+    if (*op == '*' || *op == '/' || *op == '%') return 4;
+    if (*op == '+' || *op == '-') return 5;
+    return 99;
+}
+
+char** convert(char *token[], int length) {
+    int n;
+    char *pToken;
+
+    // 並び替えたトークンを格納するバッファ。
+    // 括弧"(", ")" は除くため、元の式に括弧があればその分長さは短くなる。
+    char** buffer = calloc(length+1, sizeof(char*));
+    int nBuf = 0;
+
+    for (n = 0; n < length; n++) {
+        if (isdigit(*token[n])) {
+            // 数値ならば、バッファに追加
+            buffer[nBuf++] = token[n];
+        } else if (*token[n] == ')') {
+            // '('までスタックからポップし、バッファへ. '(' と ')' は捨てる.
+            while ((pToken = pop()) != NULL && *pToken != '(')
+                buffer[nBuf++] = pToken;
+            if (pToken == NULL) error("'(' がない");
+        } else if (*token[n] == '(') {
+            push(token[n]);
+        } else if (peek() == NULL) {
+            push(token[n]);
+        } else {
+            while (peek() != NULL) {
+                if (rank(token[n]) > rank(peek())) {
+                    // 現在のトークンはスタック最上位のトークンより優先順位が低い
+                    buffer[nBuf++] = pop();
+                } else {
+                    push(token[n]);
+                    break;
+                }
+            }
+        }
+    }
+
+    // スタックが空になるまでトークンを取り出し、バッファへ
+    while ((pToken = pop()) != NULL)
+        buffer[nBuf++] = pToken;
+    buffer[nBuf++] = NULL;
+    return buffer;
+}
+
+void printRPN(char *buffer[]) {
+    int n;
+    for (n = 0; buffer[n] != NULL; n++)
+        printf("%s ", buffer[n]);
+}
+
+int main() {
+    char *expr[] = { "(", "3.2", "+", "1.5", ")", "*", "4.0" };
+    char **buf = convert(expr, sizeof(expr)/sizeof(char*));
+    printRPN(buf);
+
+    Sleep(10000);
+}

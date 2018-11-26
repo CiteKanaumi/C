@@ -1,0 +1,204 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<windows.h>
+
+#define SUCCESS 1
+#define FAILURE 0
+#define MAX 30
+
+int j = 0;
+char popdata[MAX], *t;
+
+typedef char data_type;
+typedef struct node_tag
+{
+  data_type data;
+  struct node_tag *next;
+} node_type;
+
+
+node_type *new_node(data_type x, node_type *p);
+int push(data_type x, node_type **pp);
+int pop(node_type **pp);
+void initialize(node_type **pp);
+void print_nodes(node_type *p);
+void pd(node_type *p);
+void trim(char *);
+
+int main()
+{
+  node_type *stack;
+  int k, i=0;
+  char pushtemp, data[MAX];
+  
+  initialize(&stack); //スタックの初期化
+
+  printf("(insert data)\n");
+  scanf("%s", &data[0]); //式入力
+
+  while(data[i] != '\0')
+    {
+      i++;
+    }
+  k = i;
+  int n[k];
+
+  for(i=0; data[i] != '\0'; i++)
+    {
+      if(data[i] == '+' || data[i] == '-')
+	{
+	  n[i] = 2;
+	}
+      else if(data[i] == '*' || data[i] == '/')
+	{
+	  n[i] = 3;
+	}
+      else if(data[i] >= 'A' && data[i] <= 'z')
+	{
+	  n[i] = 5;
+	}
+      else if(data[i] == '=')
+	{
+	  n[i] = 0;
+	}
+      else if(data[i] == '(')
+	{
+	  n[i] = 4;
+	}
+      else if(data[i] == ')')
+	{
+	  n[i] = 1;
+	}
+    } //式の数値化
+  
+
+  for(i=0; data[i] != '\0'; i++)
+    {
+       if(i > 0)
+	{
+      	  if(n[i]<n[i-1])
+	    {
+	      pd(stack);
+	      pop(&stack);
+	      if(n[i]<n[i-2])
+		{
+		  pd(stack);
+		  pop(&stack);
+		}
+	     }
+	  push(data[i], &stack);
+	}
+       else
+	 {
+	   push(data[i], &stack);
+	 }
+    }
+  for(i=0; i<k; i++)
+    {
+      pd(stack);
+      pop(&stack);
+    }
+  
+  for(i=0; i<k; i++)
+    {
+      printf("%d", n[i]);
+    }
+
+  print_nodes(stack);
+
+    for(i=0; i<j; i++)
+    {
+      printf("%c", popdata[i]);
+    }
+    t=popdata;
+    trim(t);
+    
+  Sleep(10000);
+}
+
+node_type *new_node(data_type x, node_type *p)
+{
+  node_type *temp;
+
+  temp = (node_type *)malloc(sizeof(node_type));
+
+  if(temp == NULL)
+    {
+      return NULL;
+    }
+  else
+    {
+      temp->data = x;
+      temp->next = p;
+      return temp;
+    }
+}
+
+int push(data_type x, node_type **pp)
+{
+  node_type *temp;
+
+  temp = new_node(x, *pp);
+
+  if(temp == NULL)
+    {
+      return FAILURE;
+    }
+  *pp = temp;
+  return SUCCESS;
+}
+  
+int pop(node_type **pp)
+{
+  node_type *temp;
+
+  if(*pp != NULL)
+    {
+      temp = (*pp)->next;
+      free(*pp);
+      *pp = temp;
+      return SUCCESS;
+    }
+  else
+    {
+      return FAILURE;
+    }
+}
+
+void initialize(node_type **pp)
+{
+  *pp = NULL;
+}
+
+void print_nodes(node_type *p)
+{
+  while(p != NULL)
+    {
+      printf("%c", p->data);
+      p = p->next;
+    }
+  printf("\n");
+}
+
+void pd(node_type *p)
+{
+  if(p != NULL)
+    {
+      popdata[j] = p->data;
+      j++;
+    }
+}
+
+void trim(char *p)
+{
+  int i = 0;
+  printf("\n");
+  while(*p != '\0')
+    {
+      if(*p != '(' && *p != ')')
+	{
+	  printf("%c", *p);
+	}
+      p++;
+    }
+}
